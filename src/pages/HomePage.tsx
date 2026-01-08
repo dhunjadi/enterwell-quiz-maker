@@ -16,7 +16,7 @@ const HomePage = () => {
     },
   });
 
-  const handleEdit = (id: string) => {
+  const handleEdit = (id: number | string) => {
     navigate(`/edit/${id}`);
   };
 

@@ -1,11 +1,16 @@
 export type Question = {
-  id: string;
+  id: number | string;
   question: string;
   answer: string;
 };
 
 export type Quiz = {
-  id: string;
+  id: number | string;
   name: string;
   questions: Question[];
+};
+
+export type NewQuiz = {
+  name: string;
+  questions: Omit<Question, "id">[];
 };
