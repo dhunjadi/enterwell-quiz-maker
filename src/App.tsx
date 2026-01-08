@@ -1,10 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { getQuizzes } from "./services/services";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
+import HomePage from "./pages/HomePage";
+import NewQuizPage from "./pages/NewQuizPage";
+import { EditQuizPage } from "./pages/EditQuizPage";
 
-function App() {
-  const { data } = useQuery({ queryKey: ["quizzes"], queryFn: getQuizzes });
-
-  return <h1>{data?.map((quiz) => quiz.name)}</h1>;
-}
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/new" element={<NewQuizPage />} />
+        <Route path="/edit/:id" element={<EditQuizPage />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

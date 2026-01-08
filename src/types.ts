@@ -1,11 +1,11 @@
 export type Question = {
-  id: number;
+  id: string;
   question: string;
   answer: string;
 };
 
 export type Quiz = {
-  id: number;
+  id: string;
   name: string;
   questions: Question[];
 };
