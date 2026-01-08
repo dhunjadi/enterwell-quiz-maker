@@ -1,5 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
+import { getQuizzes } from "./services/services";
+
 function App() {
-  return <h1>App</h1>;
+  const { data } = useQuery({ queryKey: ["quizzes"], queryFn: getQuizzes });
+
+  return <h1>{data?.map((quiz) => quiz.name)}</h1>;
 }
 
 export default App;

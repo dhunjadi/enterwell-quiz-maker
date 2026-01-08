@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint ./src --fix --max-warnings=0",
     "preview": "vite preview",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "serve-json": "json-server --watch db.json --port 4000"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
