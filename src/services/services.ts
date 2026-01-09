@@ -7,6 +7,16 @@ export const getQuizzes = async (): Promise<Quiz[]> => {
   return response.data;
 };
 
+export const getQuizById = async (id: string | number): Promise<Quiz> => {
+  const response = await axios.get(`${API_URL}/quizzes/${id}`);
+  return response.data;
+};
+
+export const putQuiz = async (id: string | number, quiz: Quiz) => {
+  const response = await axios.put(`${API_URL}/quizzes/${id}`, quiz);
+  return response.data;
+};
+
 export const deleteQuiz = async (id: Quiz["id"]) => {
   const response = await axios.delete(`${API_URL}/quizzes/${id}`);
   return response.data;

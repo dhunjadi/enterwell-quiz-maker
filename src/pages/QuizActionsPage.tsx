@@ -1,17 +1,32 @@
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
-import { getQuestions, postQuiz } from "../services/services";
+import {
+  getQuestions,
+  getQuizById,
+  postQuiz,
+  putQuiz,
+} from "../services/services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { newQuizValidationSchema, type FormFields } from "../../validations";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
+import type { Quiz } from "../types";
 
-const NewQuizPage = () => {
+const QuizActionsPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { quizId } = useParams();
+  const isEdit = pathname.includes("edit");
 
   const { data: existingQuestions } = useQuery({
     queryKey: ["questions"],
     queryFn: getQuestions,
+  });
+
+  const { data: quizBeingEdited } = useQuery({
+    queryKey: ["quiz-being-edited", quizId],
+    queryFn: () => getQuizById(quizId || ""),
+    enabled: isEdit && !!quizId,
   });
 
   const { mutate: createNewQuiz } = useMutation({
@@ -26,6 +41,19 @@ const NewQuizPage = () => {
     },
   });
 
+  const { mutate: updateQuiz } = useMutation({
+    mutationFn: ({ id, quiz }: { id: string | number; quiz: Quiz }) =>
+      putQuiz(id, quiz),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+      navigate("/");
+    },
+    onError: (error) => {
+      // eslint-disable-next-line no-console
+      console.error("Failed to update quiz", error);
+    },
+  });
+
   const {
     register,
     control,
@@ -35,6 +63,16 @@ const NewQuizPage = () => {
   } = useForm<FormFields>({
     resolver: zodResolver(newQuizValidationSchema),
     mode: "onTouched",
+    values:
+      isEdit && quizBeingEdited
+        ? {
+            name: quizBeingEdited.name,
+            questions: quizBeingEdited.questions.map((q) => ({
+              ...q,
+              reuse: false,
+            })),
+          }
+        : undefined,
     defaultValues: {
       name: "",
       questions: [],
@@ -44,7 +82,6 @@ const NewQuizPage = () => {
   const questions = useWatch({
     control,
     name: "questions",
-    defaultValue: [],
   });
 
   const {
@@ -57,51 +94,66 @@ const NewQuizPage = () => {
   });
 
   const onSubmit = (data: FormFields) => {
+    const questionsToSubmit = data.questions.map((q) => ({
+      ...(q.id ? { id: q.id } : {}),
+      question: q.question,
+      answer: q.answer,
+    }));
+
     const dataToSubmit = {
-      ...data,
-      questions: data.questions.map(({ reuse: _, ...rest }) => rest),
+      name: data.name,
+      questions: questionsToSubmit,
     };
 
-    createNewQuiz(dataToSubmit);
+    if (isEdit && quizId) {
+      updateQuiz({
+        id: quizId,
+        quiz: { ...dataToSubmit, id: quizId },
+      });
+    } else {
+      createNewQuiz(dataToSubmit);
+    }
   };
 
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <input type="text" placeholder="Quiz name" {...register("name")} />
-        {errors.name?.message && <p>{errors.name.message}</p>}
+        <div>
+          <input type="text" placeholder="Quiz name" {...register("name")} />
+          {errors.name?.message && <p>{errors.name.message}</p>}
+        </div>
 
         {questionsFields.map((field, i) => {
-          const question = questions[i];
+          const isReusing = questions?.[i]?.reuse;
 
           return (
             <div key={field.id}>
-              {question?.reuse ? (
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const usedQuestion = existingQuestions?.find(
-                      (question) => question.id.toString() === e.target.value
-                    );
+              {isReusing ? (
+                <div>
+                  <label>Select an existing question:</label>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const selected = existingQuestions?.find(
+                        (q) => q.id?.toString() === e.target.value
+                      );
 
-                    setValue(
-                      `questions.${i}.question`,
-                      usedQuestion?.question ?? ""
-                    );
-                    setValue(
-                      `questions.${i}.answer`,
-                      usedQuestion?.answer ?? ""
-                    );
-                    setValue(`questions.${i}.reuse`, false);
-                  }}
-                >
-                  <option value="">Select existing question</option>
-                  {existingQuestions?.map((question) => (
-                    <option key={question.id} value={question.id}>
-                      {question.question}
-                    </option>
-                  ))}
-                </select>
+                      if (selected) {
+                        setValue(`questions.${i}.id`, selected.id);
+                        setValue(`questions.${i}.question`, selected.question);
+                        setValue(`questions.${i}.answer`, selected.answer);
+                        setValue(`questions.${i}.reuse`, false);
+                      }
+                    }}
+                  >
+                    <option value="">Select existing question</option>
+                    {existingQuestions?.map((q) => (
+                      <option key={q.id} value={q.id}>
+                        {q.question}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               ) : (
                 <>
                   <input
@@ -147,10 +199,11 @@ const NewQuizPage = () => {
 
         {errors.questions?.message && <p>{errors.questions.message}</p>}
 
-        <button disabled={questions.some((q) => q.reuse)} type="submit">
-          Create new quiz
+        <button disabled={questions?.some((q) => q.reuse)} type="submit">
+          {isEdit ? "Update quiz" : "Save quiz"}
         </button>
       </form>
+
       <button onClick={() => navigate("/")} type="button">
         Go back
       </button>
@@ -158,4 +211,4 @@ const NewQuizPage = () => {
   );
 };
 
-export default NewQuizPage;
+export default QuizActionsPage;

@@ -1,15 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import HomePage from "./pages/HomePage";
-import NewQuizPage from "./pages/NewQuizPage";
-import { EditQuizPage } from "./pages/EditQuizPage";
+import QuizActionsPage from "./pages/QuizActionsPage";
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/new" element={<NewQuizPage />} />
-        <Route path="/edit/:id" element={<EditQuizPage />} />
+        <Route path="/new" element={<QuizActionsPage />} />
+        <Route path="/edit/:quizId" element={<QuizActionsPage />} />
       </Routes>
     </Router>
   );

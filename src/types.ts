@@ -1,5 +1,5 @@
 export type Question = {
-  id: number | string;
+  id?: number | string;
   question: string;
   answer: string;
 };
@@ -10,7 +10,4 @@ export type Quiz = {
   questions: Question[];
 };
 
-export type NewQuiz = {
-  name: string;
-  questions: Omit<Question, "id">[];
-};
+export type NewQuiz = Omit<Quiz, "id">;
