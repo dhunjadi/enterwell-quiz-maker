@@ -151,6 +151,9 @@ const NewQuizPage = () => {
           Create new quiz
         </button>
       </form>
+      <button onClick={() => navigate("/")} type="button">
+        Go back
+      </button>
     </div>
   );
 };
