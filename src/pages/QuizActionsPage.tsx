@@ -10,6 +10,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { newQuizValidationSchema, type FormFields } from "../../validations";
 import { useLocation, useNavigate, useParams } from "react-router";
 import type { Quiz } from "../types";
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  MenuItem,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 const QuizActionsPage = () => {
   const queryClient = useQueryClient();
@@ -116,26 +126,40 @@ const QuizActionsPage = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <input type="text" placeholder="Quiz name" {...register("name")} />
-          {errors.name?.message && <p>{errors.name.message}</p>}
-        </div>
+    <Box p={3}>
+      <Paper sx={{ p: 3, mx: "auto" }}>
+        <Typography variant="h4" gutterBottom>
+          {isEdit ? "Edit Quiz" : "Create Quiz"}
+        </Typography>
 
-        {questionsFields.map((field, i) => {
-          const isReusing = questions?.[i]?.reuse;
+        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+          <TextField
+            fullWidth
+            label="Quiz name"
+            margin="normal"
+            {...register("name")}
+            error={!!errors.name}
+            helperText={errors.name?.message}
+          />
 
-          return (
-            <div key={field.id}>
-              {isReusing ? (
-                <div>
-                  <label>Select an existing question:</label>
-                  <select
+          {questionsFields.map((field, i) => {
+            const isReusing = questions?.[i]?.reuse;
+
+            return (
+              <Paper key={field.id} sx={{ p: 2, mt: 2 }} variant="outlined">
+                <Typography variant="subtitle1" gutterBottom>
+                  Question {i + 1}
+                </Typography>
+
+                {isReusing ? (
+                  <TextField
+                    select
+                    fullWidth
+                    label="Select existing question"
                     value=""
                     onChange={(e) => {
                       const selected = existingQuestions?.find(
-                        (q) => q.id?.toString() === e.target.value
+                        (q) => q.id?.toString() === e.target.value.toString()
                       );
 
                       if (selected) {
@@ -146,68 +170,86 @@ const QuizActionsPage = () => {
                       }
                     }}
                   >
-                    <option value="">Select existing question</option>
                     {existingQuestions?.map((q) => (
-                      <option key={q.id} value={q.id}>
+                      <MenuItem key={q.id} value={q.id}>
                         {q.question}
-                      </option>
+                      </MenuItem>
                     ))}
-                  </select>
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    placeholder={`Question ${i + 1}`}
-                    {...register(`questions.${i}.question`)}
-                  />
-                  {errors.questions?.[i]?.question?.message && (
-                    <p>{errors.questions[i]?.question?.message}</p>
-                  )}
+                  </TextField>
+                ) : (
+                  <>
+                    <TextField
+                      fullWidth
+                      label="Question"
+                      margin="normal"
+                      {...register(`questions.${i}.question`)}
+                      error={!!errors.questions?.[i]?.question}
+                      helperText={errors.questions?.[i]?.question?.message}
+                    />
 
-                  <input
-                    type="text"
-                    placeholder={`Answer ${i + 1}`}
-                    {...register(`questions.${i}.answer`)}
-                  />
-                  {errors.questions?.[i]?.answer?.message && (
-                    <p>{errors.questions[i]?.answer?.message}</p>
-                  )}
-                </>
-              )}
+                    <TextField
+                      fullWidth
+                      label="Answer"
+                      margin="normal"
+                      {...register(`questions.${i}.answer`)}
+                      error={!!errors.questions?.[i]?.answer}
+                      helperText={errors.questions?.[i]?.answer?.message}
+                    />
+                  </>
+                )}
 
-              <label>
-                <input type="checkbox" {...register(`questions.${i}.reuse`)} />
-                Reuse old question
-              </label>
+                <FormControlLabel
+                  control={<Checkbox {...register(`questions.${i}.reuse`)} />}
+                  label="Reuse old question"
+                />
 
-              <button type="button" onClick={() => removeQuestion(i)}>
-                Remove
-              </button>
-            </div>
-          );
-        })}
+                <Box mt={1}>
+                  <Button
+                    color="error"
+                    size="small"
+                    onClick={() => removeQuestion(i)}
+                  >
+                    Remove
+                  </Button>
+                </Box>
+              </Paper>
+            );
+          })}
 
-        <button
-          type="button"
-          onClick={() =>
-            addQuestion({ question: "", answer: "", reuse: false })
-          }
-        >
-          Add question
-        </button>
+          <Box mt={2}>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                addQuestion({ question: "", answer: "", reuse: false })
+              }
+            >
+              Add question
+            </Button>
+          </Box>
 
-        {errors.questions?.message && <p>{errors.questions.message}</p>}
+          {errors.questions?.message ||
+            (errors.questions?.root?.message && (
+              <Typography color="error" mt={1}>
+                {errors.questions.message || errors.questions?.root?.message}
+              </Typography>
+            ))}
 
-        <button disabled={questions?.some((q) => q.reuse)} type="submit">
-          {isEdit ? "Update quiz" : "Save quiz"}
-        </button>
-      </form>
+          <Box mt={4} display="flex" gap={2}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={questions?.some((q) => q.reuse)}
+            >
+              {isEdit ? "Update quiz" : "Save quiz"}
+            </Button>
 
-      <button onClick={() => navigate("/")} type="button">
-        Go back
-      </button>
-    </div>
+            <Button variant="outlined" onClick={() => navigate("/")}>
+              Go back
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

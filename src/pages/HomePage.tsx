@@ -1,12 +1,29 @@
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteQuiz, getQuizzes } from "../services/services";
 import { useNavigate } from "react-router";
+import { deleteQuiz, getQuizzes } from "../services/services";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data } = useQuery({ queryKey: ["quizzes"], queryFn: getQuizzes });
-  const { mutate: dilitaj } = useMutation({
+
+  const { data } = useQuery({
+    queryKey: ["quizzes"],
+    queryFn: getQuizzes,
+  });
+
+  const { mutate: deleteQuizMutation } = useMutation({
     mutationFn: deleteQuiz,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
@@ -22,31 +39,64 @@ const HomePage = () => {
   };
 
   return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((quiz) => {
-            return (
-              <tr key={quiz.id}>
-                <td onClick={() => handleEdit(quiz.id)}>{quiz.name}</td>
-                <td>
-                  <button>Play</button>
-                  <button onClick={() => dilitaj(quiz.id)}>Delete</button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <Box p={3}>
+      <Typography variant="h4" gutterBottom>
+        Enterwell Quizzes
+      </Typography>
 
-      <button onClick={() => navigate("/new")}>Create new</button>
-    </div>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <strong>Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Actions</strong>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {data?.map((quiz) => (
+              <TableRow key={quiz.id} hover>
+                <TableCell
+                  sx={{ cursor: "pointer", color: "primary.main" }}
+                  onClick={() => handleEdit(quiz.id)}
+                >
+                  {quiz.name}
+                </TableCell>
+
+                <TableCell>
+                  <Button size="small" variant="contained" sx={{ mr: 1 }}>
+                    Play
+                  </Button>
+
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="error"
+                    onClick={() => deleteQuizMutation(quiz.id)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box mt={3}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/new")}
+        >
+          Create new
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
