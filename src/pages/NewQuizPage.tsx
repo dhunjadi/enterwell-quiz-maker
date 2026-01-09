@@ -1,4 +1,4 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { getQuestions, postQuiz } from "../services/services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,27 +8,43 @@ import { useNavigate } from "react-router";
 const NewQuizPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data } = useQuery({ queryKey: ["questions"], queryFn: getQuestions });
+
+  const { data: existingQuestions } = useQuery({
+    queryKey: ["questions"],
+    queryFn: getQuestions,
+  });
 
   const { mutate: createNewQuiz } = useMutation({
     mutationFn: postQuiz,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+      navigate("/");
     },
     onError: (error) => {
-      console.error("Failed to delete quiz", error);
+      // eslint-disable-next-line no-console
+      console.error("Failed to create quiz", error);
     },
   });
-
-  console.log(data);
 
   const {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<FormFields>({
     resolver: zodResolver(newQuizValidationSchema),
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      questions: [],
+    },
+  });
+
+  const questions = useWatch({
+    control,
+    name: "questions",
+    defaultValue: [],
   });
 
   const {
@@ -40,12 +56,13 @@ const NewQuizPage = () => {
     name: "questions",
   });
 
-  console.log(errors);
-
   const onSubmit = (data: FormFields) => {
-    console.log(data);
-    createNewQuiz(data);
-    navigate("/");
+    const dataToSubmit = {
+      ...data,
+      questions: data.questions.map(({ reuse: _, ...rest }) => rest),
+    };
+
+    createNewQuiz(dataToSubmit);
   };
 
   return (
@@ -53,42 +70,86 @@ const NewQuizPage = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <input type="text" placeholder="Quiz name" {...register("name")} />
         {errors.name?.message && <p>{errors.name.message}</p>}
-        {questionsFields.map((question, i) => (
-          <div key={question.id}>
-            <input
-              type="text"
-              placeholder={`Question ${i + 1}`}
-              {...register(`questions.${i}.question` as const)}
-            />
-            {errors.questions?.[i]?.question?.message && (
-              <p>{errors.questions?.[i]?.question.message}</p>
-            )}
 
-            <input
-              type="text"
-              placeholder={`Answer ${i + 1}`}
-              {...register(`questions.${i}.answer` as const)}
-            />
-            {errors.questions?.[i]?.answer?.message && (
-              <p>{errors.questions?.[i]?.answer.message}</p>
-            )}
+        {questionsFields.map((field, i) => {
+          const question = questions[i];
 
-            <button type="button" onClick={() => removeQuestion(i)}>
-              Remove
-            </button>
-          </div>
-        ))}
+          return (
+            <div key={field.id}>
+              {question?.reuse ? (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const usedQuestion = existingQuestions?.find(
+                      (question) => question.id.toString() === e.target.value
+                    );
+
+                    setValue(
+                      `questions.${i}.question`,
+                      usedQuestion?.question ?? ""
+                    );
+                    setValue(
+                      `questions.${i}.answer`,
+                      usedQuestion?.answer ?? ""
+                    );
+                    setValue(`questions.${i}.reuse`, false);
+                  }}
+                >
+                  <option value="">Select existing question</option>
+                  {existingQuestions?.map((question) => (
+                    <option key={question.id} value={question.id}>
+                      {question.question}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder={`Question ${i + 1}`}
+                    {...register(`questions.${i}.question`)}
+                  />
+                  {errors.questions?.[i]?.question?.message && (
+                    <p>{errors.questions[i]?.question?.message}</p>
+                  )}
+
+                  <input
+                    type="text"
+                    placeholder={`Answer ${i + 1}`}
+                    {...register(`questions.${i}.answer`)}
+                  />
+                  {errors.questions?.[i]?.answer?.message && (
+                    <p>{errors.questions[i]?.answer?.message}</p>
+                  )}
+                </>
+              )}
+
+              <label>
+                <input type="checkbox" {...register(`questions.${i}.reuse`)} />
+                Reuse old question
+              </label>
+
+              <button type="button" onClick={() => removeQuestion(i)}>
+                Remove
+              </button>
+            </div>
+          );
+        })}
 
         <button
           type="button"
-          onClick={() => addQuestion({ question: "", answer: "" })}
+          onClick={() =>
+            addQuestion({ question: "", answer: "", reuse: false })
+          }
         >
           Add question
         </button>
 
-        {errors.questions?.message && <p>{errors.questions?.message}</p>}
+        {errors.questions?.message && <p>{errors.questions.message}</p>}
 
-        <button type="submit">Create new quiz</button>
+        <button disabled={questions.some((q) => q.reuse)} type="submit">
+          Create new quiz
+        </button>
       </form>
     </div>
   );

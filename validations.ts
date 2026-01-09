@@ -7,6 +7,7 @@ export const newQuizValidationSchema = z.object({
       z.object({
         question: z.string().min(1, "Question cannot be empty"),
         answer: z.string().min(1, "Answer cannot be empty"),
+        reuse: z.boolean().optional(),
       })
     )
     .min(1, "Add at least one question"),

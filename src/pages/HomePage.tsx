@@ -12,6 +12,7 @@ const HomePage = () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
     onError: (error) => {
+      // eslint-disable-next-line no-console
       console.error("Failed to delete quiz", error);
     },
   });
