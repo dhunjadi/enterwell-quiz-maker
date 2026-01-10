@@ -7,7 +7,7 @@ import {
 } from "../services/services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { newQuizValidationSchema, type FormFields } from "../../validations";
+import { newQuizValidationSchema, type FormFields } from "../data/validations";
 import { useLocation, useNavigate, useParams } from "react-router";
 import type { Quiz } from "../types";
 import {
@@ -20,6 +20,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { appRoutes } from "../data/appRoutes";
+import Loader from "../components/Loader";
 
 const QuizActionsPage = () => {
   const queryClient = useQueryClient();
@@ -28,12 +30,13 @@ const QuizActionsPage = () => {
   const { quizId } = useParams();
   const isEdit = pathname.includes("edit");
 
-  const { data: existingQuestions } = useQuery({
-    queryKey: ["questions"],
-    queryFn: getQuestions,
-  });
+  const { data: existingQuestions, isFetching: isFetchingExistingQuestions } =
+    useQuery({
+      queryKey: ["questions"],
+      queryFn: getQuestions,
+    });
 
-  const { data: quizBeingEdited } = useQuery({
+  const { data: quizBeingEdited, isFetching: isFetchingQuiz } = useQuery({
     queryKey: ["quiz-being-edited", quizId],
     queryFn: () => getQuizById(quizId || ""),
     enabled: isEdit && !!quizId,
@@ -43,7 +46,7 @@ const QuizActionsPage = () => {
     mutationFn: postQuiz,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
-      navigate("/");
+      navigate(appRoutes.home);
     },
     onError: (error) => {
       // eslint-disable-next-line no-console
@@ -56,7 +59,7 @@ const QuizActionsPage = () => {
       putQuiz(id, quiz),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
-      navigate("/");
+      navigate(appRoutes.home);
     },
     onError: (error) => {
       // eslint-disable-next-line no-console
@@ -124,6 +127,8 @@ const QuizActionsPage = () => {
       createNewQuiz(dataToSubmit);
     }
   };
+
+  if (isFetchingExistingQuestions || isFetchingQuiz) return <Loader />;
 
   return (
     <Box p={3}>
@@ -243,7 +248,7 @@ const QuizActionsPage = () => {
               {isEdit ? "Update quiz" : "Save quiz"}
             </Button>
 
-            <Button variant="outlined" onClick={() => navigate("/")}>
+            <Button variant="outlined" onClick={() => navigate(appRoutes.home)}>
               Go back
             </Button>
           </Box>

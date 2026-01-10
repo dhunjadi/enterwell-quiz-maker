@@ -34,9 +34,25 @@
           "question": "ddd",
           "answer": "ddd",
           "id": 3
+        },
+        {
+          "question": "pitanje 3",
+          "answer": "odgovor 3",
+          "id": 4
         }
       ],
       "id": 3
+    },
+    {
+      "name": "novi kviz",
+      "questions": [
+        {
+          "id": 1,
+          "question": "kratko pitanje?",
+          "answer": "Ada Lovelace"
+        }
+      ],
+      "id": 4
     }
   ],
   "questions": [
@@ -54,6 +70,16 @@
       "question": "ddd",
       "answer": "ddd",
       "id": 3
+    },
+    {
+      "question": "pitanje 3",
+      "answer": "odgovor 3",
+      "id": 4
+    },
+    {
+      "question": "pitanje",
+      "answer": "odgovor",
+      "id": 5
     }
   ]
 }

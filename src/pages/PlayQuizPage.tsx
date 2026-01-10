@@ -11,6 +11,8 @@ import {
   Stack,
   Box,
 } from "@mui/material";
+import { appRoutes } from "../data/appRoutes";
+import Loader from "../components/Loader";
 
 const PlayQuizPage = () => {
   const { quizId } = useParams();
@@ -19,7 +21,7 @@ const PlayQuizPage = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
 
-  const { data: quizBeingPlayed } = useQuery({
+  const { data: quizBeingPlayed, isFetching } = useQuery({
     queryKey: ["quiz-being-played", quizId],
     queryFn: () => getQuizById(quizId || ""),
     enabled: !!quizId,
@@ -36,6 +38,8 @@ const PlayQuizPage = () => {
   };
 
   const question = quizBeingPlayed?.questions[currentQuestionIndex];
+
+  if (isFetching) return <Loader />;
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -99,7 +103,7 @@ const PlayQuizPage = () => {
             variant="contained"
             color="warning"
             size="small"
-            onClick={() => navigate("/")}
+            onClick={() => navigate(appRoutes.home)}
           >
             Back to Home
           </Button>

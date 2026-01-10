@@ -13,12 +13,14 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { deleteQuiz, getQuizzes } from "../services/services";
+import { appRoutes } from "../data/appRoutes";
+import Loader from "../components/Loader";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ["quizzes"],
     queryFn: getQuizzes,
   });
@@ -35,8 +37,10 @@ const HomePage = () => {
   });
 
   const handleEdit = (id: number | string) => {
-    navigate(`/edit/${id}`);
+    navigate(`${appRoutes.edit}/${id}`);
   };
+
+  if (isFetching) return <Loader />;
 
   return (
     <Box p={3}>
@@ -72,7 +76,7 @@ const HomePage = () => {
                     size="small"
                     variant="contained"
                     sx={{ mr: 1 }}
-                    onClick={() => navigate(`/play/${quiz.id}`)}
+                    onClick={() => navigate(`${appRoutes.play}/${quiz.id}`)}
                   >
                     Play
                   </Button>
@@ -96,7 +100,7 @@ const HomePage = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/new")}
+          onClick={() => navigate(appRoutes.new)}
         >
           Create new
         </Button>

@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const questionSchema = z.object({
-  // The ID is optional because new questions won't have one yet
   id: z.union([z.string(), z.number()]).optional(),
   question: z.string().min(1, "Question text is required"),
   answer: z.string().min(1, "Answer is required"),
