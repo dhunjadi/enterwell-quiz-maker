@@ -83,6 +83,7 @@ const QuizActionsPage = () => {
     handleSubmit,
     setValue,
     formState: { errors },
+    trigger,
   } = useForm<FormFields>({
     resolver: zodResolver(newQuizValidationSchema),
     mode: "onTouched",
@@ -205,6 +206,7 @@ const QuizActionsPage = () => {
                         setValue(`questions.${i}.question`, selected.question);
                         setValue(`questions.${i}.answer`, selected.answer);
                         setValue(`questions.${i}.reuse`, false);
+                        trigger();
                       }
                     }}
                   >
