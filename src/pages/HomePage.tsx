@@ -91,7 +91,7 @@ const HomePage = () => {
   return (
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
-        Enterwell Quizzes
+        Enterwell Quiz Maker
       </Typography>
 
       <TableContainer component={Paper}>
