@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { appRoutes } from "../data/appRoutes";
 import Loader from "../components/Loader";
+import ErrorModal from "../components/ErrorModal";
 
 const PlayQuizPage = () => {
   const { quizId } = useParams();
@@ -21,7 +22,12 @@ const PlayQuizPage = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
 
-  const { data: quizBeingPlayed, isFetching } = useQuery({
+  const {
+    data: quizBeingPlayed,
+    isFetching,
+    isError: isFetchingQuizError,
+    error,
+  } = useQuery({
     queryKey: ["quiz-being-played", quizId],
     queryFn: () => getQuizById(quizId || ""),
     enabled: !!quizId,
@@ -40,6 +46,16 @@ const PlayQuizPage = () => {
   const question = quizBeingPlayed?.questions[currentQuestionIndex];
 
   if (isFetching) return <Loader />;
+
+  if (isFetchingQuizError)
+    return (
+      <ErrorModal
+        open={isFetchingQuizError}
+        message={error?.message}
+        closeText="Back to Home"
+        onClose={() => navigate(appRoutes.home)}
+      />
+    );
 
   return (
     <Container sx={{ mt: 4 }}>

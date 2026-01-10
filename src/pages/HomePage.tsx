@@ -25,31 +25,37 @@ const HomePage = () => {
 
   const [errorText, setErrorText] = useState("");
 
-  const { data, isFetching } = useQuery({
+  const {
+    data,
+    isFetching,
+    isError: isFetchingQuizzesError,
+    error,
+  } = useQuery({
     queryKey: ["quizzes"],
     queryFn: getQuizzes,
   });
 
-  const { mutate: deleteQuizMutation, isError } = useMutation({
-    mutationFn: deleteQuiz,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
-    },
-    onError: (error: AxiosError) => {
-      setErrorText(error.message);
-    },
-  });
+  const { mutate: deleteQuizMutation, isError: isDeletingQuizError } =
+    useMutation({
+      mutationFn: deleteQuiz,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+      },
+      onError: (error: AxiosError) => {
+        setErrorText(error.message);
+      },
+    });
 
   const handleEdit = (id: number | string) => {
     navigate(`${appRoutes.edit}/${id}`);
   };
 
   if (isFetching) return <Loader />;
-  if (isError)
+  if (isDeletingQuizError || isFetchingQuizzesError)
     return (
       <ErrorModal
-        open={isError}
-        message={errorText}
+        open={isDeletingQuizError || isFetchingQuizzesError}
+        message={errorText || error?.message}
         closeText="Try again"
         onClose={() => navigate(0)}
       />

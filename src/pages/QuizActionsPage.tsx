@@ -13,8 +13,6 @@ import type { Quiz } from "../types";
 import {
   Box,
   Button,
-  Checkbox,
-  FormControlLabel,
   MenuItem,
   Paper,
   TextField,
@@ -35,13 +33,22 @@ const QuizActionsPage = () => {
 
   const [errorText, setErrorText] = useState("");
 
-  const { data: existingQuestions, isFetching: isFetchingExistingQuestions } =
-    useQuery({
-      queryKey: ["questions"],
-      queryFn: getQuestions,
-    });
+  const {
+    data: existingQuestions,
+    isFetching: isFetchingExistingQuestions,
+    isError: isFetchingExistingQuestionsError,
+    error: fetchingExistingQuestionsError,
+  } = useQuery({
+    queryKey: ["questions"],
+    queryFn: getQuestions,
+  });
 
-  const { data: quizBeingEdited, isFetching: isFetchingQuiz } = useQuery({
+  const {
+    data: quizBeingEdited,
+    isFetching: isFetchingQuiz,
+    isError: isFetchingQuizError,
+    error: fetchingQuizError,
+  } = useQuery({
     queryKey: ["quiz-being-edited", quizId],
     queryFn: () => getQuizById(quizId || ""),
     enabled: isEdit && !!quizId,
@@ -132,11 +139,22 @@ const QuizActionsPage = () => {
   };
 
   if (isFetchingExistingQuestions || isFetchingQuiz) return <Loader />;
-  if (isCreateError || isUpdateError)
+  if (
+    isCreateError ||
+    isUpdateError ||
+    isFetchingExistingQuestionsError ||
+    isFetchingQuizError
+  )
     return (
       <ErrorModal
-        open={isCreateError || isUpdateError}
-        message={errorText}
+        open={
+          isCreateError || isUpdateError || isFetchingExistingQuestionsError
+        }
+        message={
+          errorText ||
+          fetchingExistingQuestionsError?.message ||
+          fetchingQuizError?.message
+        }
         closeText="Back to home page"
         onClose={() => navigate(appRoutes.home)}
       />
@@ -161,6 +179,9 @@ const QuizActionsPage = () => {
 
           {questionsFields.map((field, i) => {
             const isReusing = questions?.[i]?.reuse;
+            const isExistingQuestion = existingQuestions?.find(
+              (q) => q.id === questions[i]?.id
+            );
 
             return (
               <Paper key={field.id} sx={{ p: 2, mt: 2 }} variant="outlined">
@@ -215,10 +236,13 @@ const QuizActionsPage = () => {
                   </>
                 )}
 
-                <FormControlLabel
-                  control={<Checkbox {...register(`questions.${i}.reuse`)} />}
-                  label="Reuse old question"
-                />
+                {!isReusing && !isExistingQuestion && (
+                  <Button
+                    onClick={() => setValue(`questions.${i}.reuse`, true)}
+                  >
+                    Reuse old question
+                  </Button>
+                )}
 
                 <Box mt={1}>
                   <Button
