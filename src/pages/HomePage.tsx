@@ -68,7 +68,12 @@ const HomePage = () => {
                 </TableCell>
 
                 <TableCell>
-                  <Button size="small" variant="contained" sx={{ mr: 1 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ mr: 1 }}
+                    onClick={() => navigate(`/play/${quiz.id}`)}
+                  >
                     Play
                   </Button>
 
