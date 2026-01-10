@@ -270,12 +270,11 @@ const QuizActionsPage = () => {
             </Button>
           </Box>
 
-          {errors.questions?.message ||
-            (errors.questions?.root?.message && (
-              <Typography color="error" mt={1}>
-                {errors.questions.message || errors.questions?.root?.message}
-              </Typography>
-            ))}
+          {(errors.questions?.root?.message || errors.questions?.message) && (
+            <Typography color="error" mt={1}>
+              {errors.questions?.root?.message || errors.questions?.message}
+            </Typography>
+          )}
 
           <Box mt={4} display="flex" gap={2}>
             <Button
