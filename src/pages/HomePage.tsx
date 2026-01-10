@@ -18,9 +18,11 @@ import Loader from "../components/Loader";
 import { useState } from "react";
 import type { AxiosError } from "axios";
 import ErrorModal from "../components/ErrorModal";
+import { useQuizContext } from "../hooks/useQuizContext";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { setCurrentQuestionIndex } = useQuizContext();
   const queryClient = useQueryClient();
 
   const [errorText, setErrorText] = useState("");
@@ -48,6 +50,11 @@ const HomePage = () => {
 
   const handleEdit = (id: number | string) => {
     navigate(`${appRoutes.edit}/${id}`);
+  };
+
+  const handlePlay = (id: string | number) => {
+    setCurrentQuestionIndex(0);
+    navigate(`${appRoutes.play}/${id}`);
   };
 
   if (isFetching) return <Loader />;
@@ -95,7 +102,7 @@ const HomePage = () => {
                     size="small"
                     variant="contained"
                     sx={{ mr: 1 }}
-                    onClick={() => navigate(`${appRoutes.play}/${quiz.id}`)}
+                    onClick={() => handlePlay(quiz.id)}
                   >
                     Play
                   </Button>

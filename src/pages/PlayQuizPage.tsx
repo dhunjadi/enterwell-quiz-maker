@@ -14,12 +14,13 @@ import {
 import { appRoutes } from "../data/appRoutes";
 import Loader from "../components/Loader";
 import ErrorModal from "../components/ErrorModal";
+import { useQuizContext } from "../hooks/useQuizContext";
 
 const PlayQuizPage = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const { currentQuestionIndex, setCurrentQuestionIndex } = useQuizContext();
   const [showAnswer, setShowAnswer] = useState(false);
 
   const {
