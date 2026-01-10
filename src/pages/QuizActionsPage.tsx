@@ -22,6 +22,9 @@ import {
 } from "@mui/material";
 import { appRoutes } from "../data/appRoutes";
 import Loader from "../components/Loader";
+import { useState } from "react";
+import type { AxiosError } from "axios";
+import ErrorModal from "../components/ErrorModal";
 
 const QuizActionsPage = () => {
   const queryClient = useQueryClient();
@@ -29,6 +32,8 @@ const QuizActionsPage = () => {
   const { pathname } = useLocation();
   const { quizId } = useParams();
   const isEdit = pathname.includes("edit");
+
+  const [errorText, setErrorText] = useState("");
 
   const { data: existingQuestions, isFetching: isFetchingExistingQuestions } =
     useQuery({
@@ -42,28 +47,26 @@ const QuizActionsPage = () => {
     enabled: isEdit && !!quizId,
   });
 
-  const { mutate: createNewQuiz } = useMutation({
+  const { mutate: createNewQuiz, isError: isCreateError } = useMutation({
     mutationFn: postQuiz,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       navigate(appRoutes.home);
     },
-    onError: (error) => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to create quiz", error);
+    onError: (error: AxiosError) => {
+      setErrorText(error.message);
     },
   });
 
-  const { mutate: updateQuiz } = useMutation({
+  const { mutate: updateQuiz, isError: isUpdateError } = useMutation({
     mutationFn: ({ id, quiz }: { id: string | number; quiz: Quiz }) =>
       putQuiz(id, quiz),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       navigate(appRoutes.home);
     },
-    onError: (error) => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to update quiz", error);
+    onError: (error: AxiosError) => {
+      setErrorText(error.message);
     },
   });
 
@@ -129,6 +132,15 @@ const QuizActionsPage = () => {
   };
 
   if (isFetchingExistingQuestions || isFetchingQuiz) return <Loader />;
+  if (isCreateError || isUpdateError)
+    return (
+      <ErrorModal
+        open={isCreateError || isUpdateError}
+        message={errorText}
+        closeText="Back to home page"
+        onClose={() => navigate(appRoutes.home)}
+      />
+    );
 
   return (
     <Box p={3}>

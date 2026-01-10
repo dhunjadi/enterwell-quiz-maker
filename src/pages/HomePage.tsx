@@ -15,24 +15,28 @@ import { useNavigate } from "react-router";
 import { deleteQuiz, getQuizzes } from "../services/services";
 import { appRoutes } from "../data/appRoutes";
 import Loader from "../components/Loader";
+import { useState } from "react";
+import type { AxiosError } from "axios";
+import ErrorModal from "../components/ErrorModal";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [errorText, setErrorText] = useState("");
 
   const { data, isFetching } = useQuery({
     queryKey: ["quizzes"],
     queryFn: getQuizzes,
   });
 
-  const { mutate: deleteQuizMutation } = useMutation({
+  const { mutate: deleteQuizMutation, isError } = useMutation({
     mutationFn: deleteQuiz,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
-    onError: (error) => {
-      // eslint-disable-next-line no-console
-      console.error("Failed to delete quiz", error);
+    onError: (error: AxiosError) => {
+      setErrorText(error.message);
     },
   });
 
@@ -41,6 +45,15 @@ const HomePage = () => {
   };
 
   if (isFetching) return <Loader />;
+  if (isError)
+    return (
+      <ErrorModal
+        open={isError}
+        message={errorText}
+        closeText="Try again"
+        onClose={() => navigate(0)}
+      />
+    );
 
   return (
     <Box p={3}>
